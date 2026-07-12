@@ -12,7 +12,7 @@ The thesis: **find what's exploitable, fast, without lighting up their logs.**
 ## The three pillars (and the tension between them)
 
 - **Stealth / opsec** — SYN scans, randomized timing/order, low footprint.
-- **Speed** — async concurrency, non-blocking sockets.
+- **Speed** — concurrent probing (currently a thread pool; asyncio is a higher-ceiling alternative).
 - **Vuln finding** — banner/version grab → match against known CVEs.
 
 Stealth and speed pull in opposite directions. The *interesting* engineering is
@@ -26,8 +26,8 @@ toggle is your novelty — lean into it.
 - [ ] Create a virtualenv: `python -m venv .venv`
 - [ ] Install deps (see `requirements` note below): `scapy`, `requests`, `rich`
 - [ ] Confirm you can run Python as admin/root (raw sockets need elevated privileges)
-- [ ] `git init`, add a `.gitignore` (ignore `.venv/`, `__pycache__/`, scan output files)
-- [ ] First commit: empty scaffold. Get in the habit of small, frequent commits.
+- [x] `git init`, add a `.gitignore` (ignore `.venv/`, `__pycache__/`, scan output files)
+- [x] First commit. Get in the habit of small, frequent commits.
 
 **Milestone:** repo runs `python scanner.py --help` and prints usage.
 
@@ -38,23 +38,28 @@ toggle is your novelty — lean into it.
 Build the un-stealthy version first. It's easier to debug and gives you a
 correctness baseline to compare the stealthy version against.
 
-- [ ] Parse args: target host, port range, mode.
-- [ ] Loop over ports, attempt a full TCP connect, record open/closed.
-- [ ] Print results cleanly.
+- [ ] Parse args: target host, port range, mode. *(still TODO — target is currently hardcoded)*
+- [x] Loop over ports, attempt a full TCP connect, record open/closed. *(`scan_port` in scanner.py)*
+- [x] Print results cleanly. *(basic `print(open_ports)` for now — upgrade in Phase 6)*
 
-**Milestone:** correctly finds open ports on `scanme.nmap.org` (22, 80 should show).
+**Milestone:** ✅ correctly finds open ports on `scanme.nmap.org` (22, 80 should show).
 **Why this order:** if the SYN scan later disagrees with this, you know where the bug is.
 
 ---
 
-## Phase 2 — Async speed
+## Phase 2 — Concurrent speed  ✅ (done via thread pool)
 
-- [ ] Convert the connect scan to `asyncio` — fire many probes concurrently.
-- [ ] Add a concurrency cap (semaphore) so you don't exhaust file descriptors.
-- [ ] Add a per-connection timeout.
-- [ ] Measure: time a 1000-port scan before vs after. Put the numbers in the README.
+Went with a **thread pool** (`concurrent.futures.ThreadPoolExecutor`) instead of
+asyncio — port scanning is I/O-bound, so threads release the GIL while waiting on the
+network and give real parallelism, with much simpler code. asyncio remains a valid
+higher-ceiling option if you ever need tens of thousands of concurrent probes.
 
-**Milestone:** 1000 ports scanned in seconds, not minutes.
+- [x] Run many probes concurrently. *(`base_scan` fans `scan_port` across a thread pool)*
+- [x] Cap concurrency so you don't exhaust sockets. *(`workers=200` on the pool)*
+- [x] Add a per-connection timeout. *(`s.settimeout(timeout)`)*
+- [ ] Measure: time a 1000-port scan sequential vs threaded. Put the numbers in the README.
+
+**Milestone:** ✅ full port range scanned in seconds, not minutes.
 
 ---
 
@@ -113,7 +118,7 @@ and explains the tradeoffs" is the accurate, impressive framing.
 
 ## Scope discipline (read this when you're tempted to over-build)
 
-The MVP is: **async SYN scanner + banner grab + CVE lookup + stealth/fast toggle.**
+The MVP is: **concurrent SYN scanner + banner grab + CVE lookup + stealth/fast toggle.**
 Everything else goes in "Future ideas." A finished tool with one sharp idea beats
 an ambitious unfinished one every time. Decoys, fragmentation, OS fingerprinting,
 distributed scanning — all future. Ship the four pillars first.
