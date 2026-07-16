@@ -21,18 +21,6 @@ toggle is your novelty — lean into it.
 
 ---
 
-## Phase 0 — Setup (½ day)
-
-- [ ] Create a virtualenv: `python -m venv .venv`
-- [ ] Install deps (see `requirements` note below): `scapy`, `requests`, `rich`
-- [ ] Confirm you can run Python as admin/root (raw sockets need elevated privileges)
-- [x] `git init`, add a `.gitignore` (ignore `.venv/`, `__pycache__/`, scan output files)
-- [x] First commit. Get in the habit of small, frequent commits.
-
-**Milestone:** repo runs `python scanner.py --help` and prints usage.
-
----
-
 ## Phase 1 — Basic TCP connect scan (the boring-but-working baseline)
 
 Build the un-stealthy version first. It's easier to debug and gives you a
@@ -93,7 +81,7 @@ and explains the tradeoffs" is the accurate, impressive framing.
 
 ---
 
-## Phase 5 — Vulnerability lookup (the payoff)
+## Phase 5 — Vulnerability lookup
 
 - [ ] Take the product+version and query a CVE source (NVD API is free; there are
       also local databases if you'd rather not hit the network mid-scan).
@@ -105,7 +93,7 @@ and explains the tradeoffs" is the accurate, impressive framing.
 
 ---
 
-## Phase 6 — Polish (this is what makes it look good on GitHub)
+## Phase 6 — Polish
 
 - [ ] A clean live TUI with `rich` — ports filling in, color-coded, final summary.
 - [ ] A README with: the three-pillar pitch, a demo GIF, setup steps, the
@@ -113,15 +101,6 @@ and explains the tradeoffs" is the accurate, impressive framing.
 - [ ] A "Future ideas" section (decoys, fragmentation, OS fingerprinting, diff mode)
       so reviewers see you know what's beyond the MVP without you having to build it.
 - [ ] Tidy commit history + a tagged v0.1 release.
-
----
-
-## Scope discipline (read this when you're tempted to over-build)
-
-The MVP is: **concurrent SYN scanner + banner grab + CVE lookup + stealth/fast toggle.**
-Everything else goes in "Future ideas." A finished tool with one sharp idea beats
-an ambitious unfinished one every time. Decoys, fragmentation, OS fingerprinting,
-distributed scanning — all future. Ship the four pillars first.
 
 ---
 
